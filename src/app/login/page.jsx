@@ -1,81 +1,137 @@
 "use client";
+import React from "react";
+import Image from "next/image";
+import img3 from "../../assets/image/databreach.svg";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginSchema } from "@/validation/validationSchema";
+import { useRouter } from "next/router";
+import { z } from "zod";
+import axios from "axios";
+import Link from "next/link";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter from next/navigation
+// Define Zod schema for validation
 
-export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const router = useRouter(); // This useRouter is from next/navigation
+const Login = () => {
+  // const router = useRouter();
+  // Set up the form with react-hook-form and zod
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(LoginSchema),
+  });
 
-  // Simulate a login process
-  const handleLogin = (e) => {
-    e.preventDefault();
+  // Handle form submission
+  const onSubmit = async (data) => {
+    try {
+      // Make POST request to your backend
+      const response = await axios.post("/api/login", data);
+      console.log("Login successful:", response.data);
 
-    // Basic validation for example purposes
-    if (username === "admin" && password === "password") {
-      // Simulate setting an authentication token
-      document.cookie = `authToken=fakeAuthToken123; path=/;`;
-      localStorage.setItem("authToken", "fakeAuthToken123"); // Optional: store in localStorage for client-side use
+      // Store the token in localStorage
+      localStorage.setItem("authToken", token);
 
-      // Redirect to the dashboard (a protected route)
-      router.push("/");
-    } else {
-      setError("Invalid username or password");
+      // Store the token in cookies (expires in 7 days)
+      // Cookies.set("authToken", token, { expires: 7 });
+      router.push('/something')
+
+      // Handle success (e.g., redirect, save token, etc.)
+    } catch (error) {
+      console.error("Login failed:", error.response?.data || error.message);
+      // Handle error (e.g., show error message)
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-3xl font-semibold text-center mb-6 text-gray-800">
-          Welcome Back
-        </h2>
-        <form onSubmit={handleLogin}>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#082348]">
+      <div className="w-full max-w-md h-[400px] flex flex-col gap-5 justify-center items-center">
+        <Image src={img3} alt={"Data breach"} className="w-[200px] h-[150px]" />
+        <h1 className="text-center text-3xl font-extrabold">
+          <span className="text-white">Data Breach</span> Search Engine
+        </h1>
+      </div>
+      <div className="w-full max-w-md">
+        <form
+          className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Username
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="email"
+            >
+              Email
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800"
+              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                errors.email ? "border-red-500" : ""
+              }`}
+              id="email"
+              type="email"
+              placeholder="email"
+              {...register("email")}
             />
+            {errors.email && (
+              <p className="text-red-500 text-xs italic">
+                {errors.email.message}
+              </p>
+            )}
           </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
+          <div className="mb-6">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
+              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                errors.password ? "border-red-500" : ""
+              }`}
+              id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-800"
+              placeholder="******************"
+              {...register("password")}
             />
+            {errors.password && (
+              <p className="text-red-500 text-xs italic">
+                {errors.password.message}
+              </p>
+            )}
           </div>
-
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-md"
-          >
-            Login
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <label className="flex items-center">
+              <input type="checkbox" className="form-checkbox text-blue-500" />
+              <span className="ml-2 text-sm text-gray-700">
+                Keep me signed in on this device
+              </span>
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              className={`bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+                isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+          </div>
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">Forgot your password?</p>
-          <a href="#" className="text-indigo-600 hover:underline">
-            Reset it here
-          </a>
+        <p className="text-center text-white text-xs">
+          (and agree to our terms and privacy policy)
+        </p>
+        <div className="text-center mt-4">
+          <Link href="/signup" className="text-blue-300 hover:underline">
+            Create a New Account
+          </Link>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Login;
